@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Developed with AI assistance from Claude (https://claude.ai) by Anthropic
 """
 eBlocky Receipt Exporter
 Exports receipts from app.eblocky.sk to JSON using the Firebase/Firestore REST API.
@@ -238,6 +237,7 @@ def fetch_receipts(
         page_docs = []
         last_doc  = None
 
+        page_known = 0
         for result in raw_results:
             doc = result.get("document")
             if not doc:
@@ -246,18 +246,22 @@ def fetch_receipts(
             receipt = doc_to_dict(doc)
             fid = receipt.get("_firestore_id")
 
-            # In update mode: stop the moment we hit a receipt we already have
             if known_ids and fid in known_ids:
-                print(f"    → Reached known receipt ({fid}), stopping.")
+                # Already have this receipt — skip it but keep scanning the
+                # full page (a later-scanned receipt may appear out of order)
                 hit_existing = True
-                break
+                page_known += 1
+            else:
+                page_docs.append(receipt)
 
-            page_docs.append(receipt)
             last_doc = doc
 
         receipts.extend(page_docs)
-        print(f"    → {len(page_docs)} new receipt(s) on this page")
+        skip_note = f"  |  {page_known} already known (skipped)" if page_known else ""
+        print(f"    → {len(page_docs)} new receipt(s) on this page{skip_note}")
 
+        # Stop fetching more pages once we've seen at least one known receipt —
+        # everything on subsequent pages will be older and already stored.
         if hit_existing:
             break
         if len(page_docs) < limit:
