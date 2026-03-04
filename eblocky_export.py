@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Developed with AI assistance from Claude (https://claude.ai) by Anthropic
 """
 eBlocky Receipt Exporter
 Exports receipts from app.eblocky.sk to JSON using the Firebase/Firestore REST API.
