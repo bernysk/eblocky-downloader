@@ -1,5 +1,7 @@
 # eBlocky Receipt Exporter
 
+*Coded with the assistance of [Claude](https://claude.ai) by Anthropic.*
+
 A Python script that exports all your receipts from [app.eblocky.sk](https://app.eblocky.sk) into a JSON file using the Firebase/Firestore REST API directly — no browser required.
 
 ---
