@@ -1,7 +1,5 @@
 # eBlocky Receipt Exporter
 
-*Coded with the assistance of [Claude](https://claude.ai) by Anthropic.*
-
 A Python script that exports all your receipts from [app.eblocky.sk](https://app.eblocky.sk) into a JSON file using the Firebase/Firestore REST API directly — no browser required.
 
 ---
@@ -49,6 +47,8 @@ python eblocky_export.py --email you@example.com --password yourpassword \
   --update eblocky_receipts_20260304_153203.json
 ```
 
+The script always scans the **full page of 50** before deciding whether to stop. This handles receipts that were scanned later and appear slightly out of date order — they will still be picked up as long as they fall within the same page. Once at least one known receipt is found on a page, fetching stops — everything on subsequent pages is guaranteed to be older and already stored.
+
 Example output:
 ```
 [*] Logging in as you@example.com …
@@ -58,8 +58,7 @@ Example output:
 [*] Update mode — fetching only receipts newer than the existing file
 
 [*] Fetching page 1 (up to 50 receipts) …
-    → Reached known receipt (...), stopping.
-    → 7 new receipt(s) on this page
+    → 7 new receipt(s) on this page  |  43 already known (skipped)
 
 [+] 7 new  +  142 existing  =  149 total  (1.4s)
 [+] Saved → eblocky_receipts_20260304_172500.json
