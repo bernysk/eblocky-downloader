@@ -12,7 +12,7 @@ The eBlocky web app is built on Firebase. When you open a receipt list, the app:
 2. Receives a short-lived **ID token** (valid 1 hour)
 3. Uses that token to query **Firestore** — Google's NoSQL cloud database — where all receipts are stored under your user account
 
-This script replays exactly those steps via HTTP, without needing a browser or Selenium. It pages through your receipts in batches of 50 and saves everything to a single JSON file.
+This script replays exactly those steps via HTTP. It authenticates, then pages through your receipts in batches of 50 (newest first) and saves everything to a single JSON file.
 
 ---
 
@@ -28,19 +28,51 @@ pip install requests
 
 ## Usage
 
-### Basic — export all receipts
+### Full export — download all receipts
 
 ```bash
 python eblocky_export.py --email you@example.com --password yourpassword
 ```
 
-Output file is auto-named: `eblocky_receipts_20260304_143000.json`
+Output file is auto-named with a timestamp: `eblocky_receipts_20260304_143000.json`
+
+---
+
+### Update — only fetch what's new
+
+Point `--update` at a previously exported file. The script loads all known receipt IDs from that file, fetches receipts newest-first, and stops the moment it hits one it already has. New and existing receipts are then merged and saved to a **new file** with the current timestamp — the old file is left untouched.
+
+```bash
+python eblocky_export.py --email you@example.com --password yourpassword \
+  --update eblocky_receipts_20260304_153203.json
+```
+
+Example output:
+```
+[*] Logging in as you@example.com …
+[+] Logged in  |  UID: jaNRobAQ...
+[*] Loaded existing file: eblocky_receipts_20260304_153203.json
+    → 142 receipts already stored  |  latest: 2026-03-04T15:30:00Z
+[*] Update mode — fetching only receipts newer than the existing file
+
+[*] Fetching page 1 (up to 50 receipts) …
+    → Reached known receipt (...), stopping.
+    → 7 new receipt(s) on this page
+
+[+] 7 new  +  142 existing  =  149 total  (1.4s)
+[+] Saved → eblocky_receipts_20260304_172500.json
+```
+
+If nothing is new:
+```
+[+] Already up to date — no new receipts found  (0.9s)
+```
 
 ---
 
 ### Limit — useful for testing
 
-Fetch only the first N receipts (most recent first):
+Fetch only the N most recent receipts:
 
 ```bash
 python eblocky_export.py --email you@example.com --password yourpassword --limit 10
@@ -58,47 +90,11 @@ python eblocky_export.py --email you@example.com --password yourpassword --outpu
 
 ### Use an existing HAR file instead of credentials
 
-If you've already captured a browser session as a HAR file, you can extract the token from it instead of logging in fresh. Note that tokens expire after **1 hour** — if you get a 401 error, switch to `--email`/`--password`.
+If you've captured a browser session as a HAR file, the token inside can be reused. Note that Firebase tokens expire after **1 hour** — if you get a 401 error, switch to `--email`/`--password`.
 
 ```bash
 python eblocky_export.py --har session.har
 ```
-
----
-
-## Output format
-
-The script produces a single `.json` file:
-
-```json
-{
-  "exported_at": "2026-03-04T14:30:00+00:00",
-  "user_uid": "jaNRobAQ...",
-  "total": 142,
-  "receipts": [
-    {
-      "app_userUid": "jaNRobAQ...",
-      "app_issueDateTimestamp": "2025-11-01T10:23:00Z",
-      "seller_name": "Tesco",
-      "total_amount": 12.49,
-      "_firestore_id": "jaNRobAQ..._O-1EB57...",
-      "_firestore_createTime": "2025-11-01T10:24:05Z",
-      "_firestore_updateTime": "2025-11-01T10:24:05Z"
-    },
-    ...
-  ]
-}
-```
-
-Each receipt contains all available fields as stored in Firestore, plus three metadata fields prefixed with `_firestore_`:
-
-| Field | Description |
-|---|---|
-| `_firestore_id` | Internal document ID |
-| `_firestore_createTime` | When the receipt was first stored |
-| `_firestore_updateTime` | When it was last modified |
-
-Receipts are ordered **newest first** (by issue date).
 
 ---
 
@@ -109,6 +105,7 @@ Receipts are ordered **newest first** (by issue date).
 | `--email` | Your eBlocky account email *(required unless using --har)* |
 | `--password` | Your eBlocky account password *(required with --email)* |
 | `--har` | Path to a HAR file with a recorded login session |
+| `--update` | Path to a previous export file; fetch only new receipts and save a fresh file |
 | `--limit` | Maximum number of receipts to fetch (default: all) |
 | `--output` | Output file path (default: auto-generated with timestamp) |
 
@@ -116,8 +113,43 @@ Receipts are ordered **newest first** (by issue date).
 
 ---
 
+## Output format
+
+Each run produces a new `.json` file. The structure is always the same whether doing a full export or an update:
+
+```json
+{
+  "exported_at": "2026-03-04T17:25:00+00:00",
+  "user_uid": "jaNRobAQ...",
+  "total": 149,
+  "receipts": [
+    {
+      "app_userUid": "jaNRobAQ...",
+      "app_issueDateTimestamp": "2026-03-04T17:10:00Z",
+      "seller_name": "Tesco",
+      "total_amount": 12.49,
+      "_firestore_id": "jaNRobAQ..._O-1EB57...",
+      "_firestore_createTime": "2026-03-04T17:11:05Z",
+      "_firestore_updateTime": "2026-03-04T17:11:05Z"
+    },
+    ...
+  ]
+}
+```
+
+Receipts are always ordered **newest first**. Each receipt contains all available Firestore fields plus three metadata fields:
+
+| Field | Description |
+|---|---|
+| `_firestore_id` | Internal document ID (used for deduplication in `--update` mode) |
+| `_firestore_createTime` | When the receipt was first stored in Firestore |
+| `_firestore_updateTime` | When it was last modified |
+
+---
+
 ## Notes
 
-- The script fetches in pages of 50 receipts and saves everything at the end of the run
-- A small delay (0.2s) is added between pages to avoid hammering the API
+- Receipts are fetched in pages of 50, newest first
+- A small delay (0.2 s) is added between pages to avoid hammering the API
+- `--update` never modifies the original file — it always writes a new one
 - If the token expires mid-run (after 1 hour), re-run with `--email`/`--password` to get a fresh one
