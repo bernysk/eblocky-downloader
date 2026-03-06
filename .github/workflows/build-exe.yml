@@ -30,19 +30,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pyinstaller
 
+      # Use ${{ github.ref_name }} to append the tag or branch name to the file
       - name: Build EXE with PyInstaller
         run: >
           pyinstaller --onefile --console 
-          --name eblocky-exporter 
+          --name eblocky-exporter-${{ github.ref_name }} 
           eblocky_export.py
 
       # This step only runs if a tag triggered the workflow.
-      # It creates the release and uploads the .exe file.
+      # It creates the release and uploads the uniquely named .exe file.
       - name: Create GitHub Release and Upload EXE
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: dist/eblocky-exporter.exe
+          files: dist/eblocky-exporter-${{ github.ref_name }}.exe
           generate_release_notes: true
           draft: false
           prerelease: false
