@@ -35,7 +35,7 @@ jobs:
         run: >
           pyinstaller --onefile --console 
           --name eblocky-exporter-${{ github.ref_name }} 
-          eblocky_export.py
+          eblocky_exporter.py
 
       # This step only runs if a tag triggered the workflow.
       # It creates the release and uploads the uniquely named .exe file.
