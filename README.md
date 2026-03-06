@@ -18,6 +18,27 @@ The eBlocky web app is built on Firebase. When you open a receipt list, the app:
 This script replays exactly those steps via HTTP. It authenticates, then pages through your receipts in batches of 50 (newest first) and saves everything to a single JSON file.
 
 ---
+## 🚀 Quick Start (Windows)
+
+You do not need to install Python to run this tool. You can download the pre-compiled Windows executable directly.
+
+1. Go to the [Releases page]
+2. Download the latest `eblocky_exporter_vX.X.X.exe` file.
+3. Save the file to a known folder (e.g., your `Downloads` or `Documents` folder).
+
+### How to Run
+
+Because this is a command-line tool, you need to run it from your terminal:
+
+1. Open the folder where you saved `eblocky-exporter.exe`.
+2. Click on the address bar at the top of the folder window, type `cmd`, and press **Enter**. This will open a Command Prompt right in that folder.
+3. Type the following command (replace with your actual login details):
+
+```cmd
+eblocky_exporter_vX.X.X.exe --email your@email.com --password yourpassword
+or add --update eblocky_receipts_xxx_xxx.json to update existing file
+
+-----
 
 ## Requirements
 
