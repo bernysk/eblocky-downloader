@@ -22,7 +22,7 @@ This script replays exactly those steps via HTTP. It authenticates, then pages t
 
 You do not need to install Python to run this tool. You can download the pre-compiled Windows executable directly.
 
-1. Go to the [Releases page]
+1. Go to the Releases
 2. Download the latest `eblocky_exporter_vX.X.X.exe` file.
 3. Save the file to a known folder (e.g., your `Downloads` or `Documents` folder).
 
