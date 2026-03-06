@@ -55,7 +55,7 @@ pip install requests
 ### Full export — download all receipts
 
 ```bash
-python eblocky_export.py --email you@example.com --password yourpassword
+python eblocky_exporter.py --email you@example.com --password yourpassword
 ```
 
 Output file is auto-named with a timestamp: `eblocky_receipts_20260304_143000.json`
@@ -67,7 +67,7 @@ Output file is auto-named with a timestamp: `eblocky_receipts_20260304_143000.js
 Point `--update` at a previously exported file. The script loads all known receipt IDs from that file, fetches receipts newest-first, and stops the moment it hits one it already has. New and existing receipts are then merged and saved to a **new file** with the current timestamp — the old file is left untouched.
 
 ```bash
-python eblocky_export.py --email you@example.com --password yourpassword \
+python eblocky_exporter.py --email you@example.com --password yourpassword \
   --update eblocky_receipts_20260304_153203.json
 ```
 
@@ -100,7 +100,7 @@ If nothing is new:
 Fetch only the N most recent receipts:
 
 ```bash
-python eblocky_export.py --email you@example.com --password yourpassword --limit 10
+python eblocky_exporter.py --email you@example.com --password yourpassword --limit 10
 ```
 
 ---
@@ -108,7 +108,7 @@ python eblocky_export.py --email you@example.com --password yourpassword --limit
 ### Custom output filename
 
 ```bash
-python eblocky_export.py --email you@example.com --password yourpassword --output my_receipts.json
+python eblocky_exporter.py --email you@example.com --password yourpassword --output my_receipts.json
 ```
 
 ---
@@ -118,7 +118,7 @@ python eblocky_export.py --email you@example.com --password yourpassword --outpu
 If you've captured a browser session as a HAR file, the token inside can be reused. Note that Firebase tokens expire after **1 hour** — if you get a 401 error, switch to `--email`/`--password`.
 
 ```bash
-python eblocky_export.py --har session.har
+python eblocky_exporter.py --har session.har
 ```
 
 ---
