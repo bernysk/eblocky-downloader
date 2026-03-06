@@ -37,7 +37,7 @@ Because this is a command-line tool, you need to run it from your terminal:
 ```cmd
 eblocky_exporter_vX.X.X.exe --email your@email.com --password yourpassword
 or add --update eblocky_receipts_xxx_xxx.json to update existing file
-
+```
 -----
 
 ## Requirements
